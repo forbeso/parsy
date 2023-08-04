@@ -30,6 +30,7 @@ prompts = {
     "Experience 👨🏽‍💻👩🏼‍🔬": "Please extract the work experience details from the resume and format properly.",
     "Education 🎓": "Please extract the education details from the resume and format properly.",
     "Skills 🤹🏻‍♂️🦸🏾‍♀️": "Please extract the skills details from the resume.",
+    "Links 👾": "Please extract the links like github, personal website, linkedin details from the resume."
     # Add more prompts for other information you want to extract
 }
 
