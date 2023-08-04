@@ -1,6 +1,8 @@
 import streamlit as st
 import fitz
 import openai
+from dotenv import load_dotenv
+import os
 
 
 st.info(
@@ -18,8 +20,8 @@ st.info(
 st.sidebar.header("Resume Parser")
 
 # OpenAI API Key - Replace 'YOUR_OPENAI_API_KEY' with your actual API key
-openai.organization = "org-1cNNF3rlpTglSpDuuuHxFMQE"
-openai.api_key = "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"
+openai.organization = os.getenv("OPENAI_ORG")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Define the custom prompts to get specific information
 prompts = {
