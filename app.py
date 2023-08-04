@@ -4,7 +4,7 @@ import openai
 from dotenv import load_dotenv
 import os
 
-
+load_dotenv()
 st.info(
     """Many job seekers face challenges when 
          submitting their resumes to various job portals 
@@ -25,11 +25,11 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Define the custom prompts to get specific information
 prompts = {
-    "Name": "Please extract the name of the person applying from this resume.",
-    "Contact": "Please extract the contact details (phone number and email) from the resume.",
-    "Experience": "Please extract the experience details from the resume and format properly.",
-    "Education": "Please extract the education details from the resume and format properly.",
-    "Skills": "Please extract the skills details from the resume.",
+    "Name ": "Please extract the name of the person applying from this resume.",
+    "Contact 📱 📧": "Please extract the contact details (phone number and email) from the resume.",
+    "Experience 👨🏽‍💻👩🏼‍🔬": "Please extract the work experience details from the resume and format properly.",
+    "Education 🎓": "Please extract the education details from the resume and format properly.",
+    "Skills 🤹🏻‍♂️🦸🏾‍♀️": "Please extract the skills details from the resume.",
     # Add more prompts for other information you want to extract
 }
 
