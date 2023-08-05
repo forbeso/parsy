@@ -1,8 +1,8 @@
 import streamlit as st
-import fitz
 import openai
 from dotenv import load_dotenv
 import os
+import fitz
 
 load_dotenv()
 st.info(
