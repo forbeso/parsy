@@ -16,10 +16,20 @@ st.info(
          missed opportunities."""
 )
 
+# st.success(
+#     """ParsyPro resume parsing app aims to address these
+#     challenges and provide a seamless experience for job seekers. Using advanced
+#     AI technologies like OpenAI's GPT-3.5-turbo, ParsyPro ensures accurate and
+#     efficient extraction of crucial information from resumes in various formats, including PDF and DOCX.
+# Upon uploading their resumes, users will witness ParsyPro's powerful AI engine
+# in action, effectively identifying and grouping key details like names, email addresses,
+# phone numbers, work experiences, and education qualifications. The app's intelligent chat-based
+# interface allows users to interact naturally, enabling specific queries and extraction of personalized information."""
+# )
+
 
 st.sidebar.header("Resume Parser")
 
-# OpenAI API Key - Replace 'YOUR_OPENAI_API_KEY' with your actual API key
 openai.organization = os.getenv("OPENAI_ORG")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -30,11 +40,15 @@ prompts = {
     "Experience 👨🏽‍💻👩🏼‍🔬": "Please extract the work experience details from the resume and format properly.",
     "Education 🎓": "Please extract the education details from the resume and format properly.",
     "Skills 🤹🏻‍♂️🦸🏾‍♀️": "Please extract the skills details from the resume.",
-    "Links 👾": "Please extract the links like github, personal website, linkedin details from the resume."
-    # Add more prompts for other information you want to extract
+    "Links 👾": "Please extract the links like github, personal website, linkedin details from the resume.",
 }
 
 uploaded_file = st.sidebar.file_uploader("Choose a file", type=["pdf"])
+
+job_link = st.sidebar.text_input(label="Job Description Link", value="")
+if st.sidebar.button("Compare 🪞"):
+    st.toast("Comparison completed", icon="👍🏾")
+
 if uploaded_file is not None:
     # Read the PDF file and extract the text content
     pdf_document = fitz.open(stream=uploaded_file.read(), filetype="pdf")
