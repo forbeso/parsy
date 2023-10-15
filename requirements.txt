@@ -2,3 +2,8 @@ streamlit
 python-dotenv
 pyMuPDF
 openai
+pytesseract 
+pillow
+flask
+langchain
+streamlit-authenticator
