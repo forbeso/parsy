@@ -141,9 +141,7 @@ def sendMessage(user_question):
 
         with st.chat_message(name="assistant"):
             with st.spinner("thinking...🤔"):
-                llm = ChatOpenAI(
-                    model="gpt-4",
-                )
+                llm = ChatOpenAI(model="gpt-4", streaming=True)
                 conversation = ConversationChain(llm=llm, verbose=True)
 
                 # Pass the value of the variable text_content to the predict() method
