@@ -48,6 +48,15 @@ prompts = {
     # ),
 }
 
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
 user_question = st.chat_input(
     placeholder="your message here",
     key="userInput",
@@ -63,6 +72,21 @@ with st.sidebar:
     # )
 
     uploaded_files = st.sidebar.file_uploader("Choose a file", type=["pdf"])
+
+
+def get_initial_msgs():
+    with st.chat_message(name="assistant"):
+        st.info(
+            """
+            Hello! I am Parsly, an AI assistant that can 
+                 read your documents and answer your questions. I am still under development, 
+                 but I have learned to perform many kinds of tasks, including:
+                 I can read and understand your documents, including PDFs, Word documents, and email messages. 
+                 I can answer your questions about your documents, even if they are open ended, challenging, or strange.
+                I can generate different creative text formats of text content, like poems, code, scripts, 
+                musical pieces, email, letters, etc. I will try my best to fulfill all your requirements.
+            """
+        )
 
 
 def get_doc_content():
@@ -85,14 +109,21 @@ def get_doc_content():
 
 def sendMessage(user_question):
     if user_question and uploaded_files is not None:
+        # calls function to parse uploaded document
         text_content = get_doc_content()
+
         with st.chat_message(name="user"):
             st.write(user_question)
+            # Add user message to chat history
+            st.session_state.messages.append({"role": "user", "content": user_question})
         # Display the text content of the PDF file
         with st.chat_message(name="assistant"):
             with st.expander("Parsed Document Details"):
                 st.write("The details I gathered from your document: \n")
                 st.write(text_content)
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": text_content}
+                )
 
                 # Use OpenAI ChatGPT to extract specific information
                 # for prompt_name, prompt_text in prompts.items():
@@ -109,21 +140,32 @@ def sendMessage(user_question):
                 #         st.write(f"{prompt_name.capitalize()}: {extracted_info}")
 
         with st.chat_message(name="assistant"):
-            llm = ChatOpenAI(
-                model="gpt-4",
-            )
-            conversation = ConversationChain(llm=llm, verbose=True)
+            with st.spinner("thinking...🤔"):
+                llm = ChatOpenAI(
+                    model="gpt-4",
+                )
+                conversation = ConversationChain(llm=llm, verbose=True)
 
-            # Pass the value of the variable text_content to the predict() method
-            output = conversation.predict(
-                input=user_question + " according to: \n {} ".format(text_content)
-            )
+                # Pass the value of the variable text_content to the predict() method
+                output = conversation.predict(
+                    input="Your task is to answer any questions and related tasks based on the information provided. \n Here is the question: "
+                    + user_question
+                    + " \n and here is the content: \n {} ".format(text_content)
+                )
 
-            st.success(output)
+                st.write(output)
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": output}
+                )
     else:
-        with st.chat_message(name="AI"):
-            st.write("Please remember to add a document")
+        with st.chat_message(name="assistant"):
+            no_document = st.write("Please remember to add a document")
+            st.session_state.messages.append(
+                {"role": "assistant", "content": no_document}
+            )
 
 
-if user_question:
+get_initial_msgs()
+
+if user_question is not None:
     sendMessage(user_question=user_question)
