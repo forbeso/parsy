@@ -1,5 +1,13 @@
 [theme]
-base="dark"
+primaryColor="#6a65c4"
+backgroundColor="#201e42"
+secondaryBackgroundColor="#484596"
+textColor="#efeff1"
+
+
+
+
+
 
 
 [server]

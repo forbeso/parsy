@@ -12,13 +12,13 @@ from langchain.prompts import (
     HumanMessagePromptTemplate,
     PromptTemplate,
 )
-from langchain.chains import LLMChain
-from langchain import ConversationChain
+from langchain.chains import LLMChain, ConversationChain
 
+from docx import Document
+import io
 
 load_dotenv(find_dotenv())
 
-role = ["AI", "user"]
 
 # openai.organization = os.getenv("OPENAI_ORG")
 # openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -48,6 +48,8 @@ prompts = {
     # ),
 }
 
+st.header("Get Answers From Your Docs Before You Can Say...")
+
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -65,13 +67,15 @@ user_question = st.chat_input(
 )
 
 with st.sidebar:
-    st.header("Talk to your docs")
+    st.header("Which document would you like to talk to?")
 
     # user_key = st.sidebar.text_input(
     #     "Your Open AI Key", value="", help="Input your Open AI Key to use the app."
     # )
 
-    uploaded_files = st.sidebar.file_uploader("Choose a file", type=["pdf"])
+    uploaded_files = st.sidebar.file_uploader(
+        "Choose a file", type=["pdf", "docx", "txt"]
+    )
 
 
 def get_initial_msgs():
@@ -90,6 +94,16 @@ def get_initial_msgs():
 
 
 def get_doc_content():
+    word_document = Document(docx=io.BytesIO(uploaded_files.read()))
+
+    content = ""
+    for paragraph in word_document.paragraphs:
+        content += paragraph.text
+
+    return content
+
+
+def get_pdf_content():
     # Read the PDF file and extract the text content
     pdf_document = fitz.open(
         stream=uploaded_files.read(),
@@ -103,67 +117,79 @@ def get_doc_content():
     # Handle special characters and bullet points using regular expressions
     text_content = re.sub(r"\s+([•●▪▸*-])\s+", r" \1 ", text_content)
     text_content = re.sub(r"\s+([,.:;?!(){}\[\]])\s+", r"\1 ", text_content)
+    st.write(uploaded_files.type)
+    st.write(uploaded_files.name)
 
     return text_content
 
 
 def sendMessage(user_question):
-    if user_question and uploaded_files is not None:
-        # calls function to parse uploaded document
-        text_content = get_doc_content()
+    if user_question is not None:
+        if uploaded_files is not None:
+            # calls function to parse uploaded document
+            text_content = ""
+            if uploaded_files.type == "application/pdf":
+                text_content = get_pdf_content()
+            else:
+                text_content = get_doc_content()
 
-        with st.chat_message(name="user"):
-            st.write(user_question)
-            # Add user message to chat history
-            st.session_state.messages.append({"role": "user", "content": user_question})
-        # Display the text content of the PDF file
-        with st.chat_message(name="assistant"):
-            with st.expander("Parsed Document Details"):
-                st.write("The details I gathered from your document: \n")
-                st.write(text_content)
+            with st.chat_message(name="user"):
+                st.write(user_question)
+                # Add user message to chat history
                 st.session_state.messages.append(
-                    {"role": "assistant", "content": text_content}
+                    {"role": "user", "content": user_question}
                 )
+            # Display the text content of the PDF file
+            with st.chat_message(name="assistant"):
+                with st.expander("Parsed Document Details"):
+                    st.write("The details I gathered from your document: \n")
+                    st.write(text_content)
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": text_content}
+                    )
 
-                # Use OpenAI ChatGPT to extract specific information
-                # for prompt_name, prompt_text in prompts.items():
-                #     response = openai.ChatCompletion.create(
-                #         model="gpt-4",  # You can use the model of your choice
-                #         messages=[
-                #             {"role": "system", "content": prompt_text},
-                #             {"role": "user", "content": text_content},
-                #         ],
-                #     )
-                #     extracted_info = response["choices"][0]["message"]["content"].strip()
+                    # Use OpenAI ChatGPT to extract specific information
+                    # for prompt_name, prompt_text in prompts.items():
+                    #     response = openai.ChatCompletion.create(
+                    #         model="gpt-4",  # You can use the model of your choice
+                    #         messages=[
+                    #             {"role": "system", "content": prompt_text},
+                    #             {"role": "user", "content": text_content},
+                    #         ],
+                    #     )
+                    #     extracted_info = response["choices"][0]["message"]["content"].strip()
 
-                #     with st.expander(prompt_name):
-                #         st.write(f"{prompt_name.capitalize()}: {extracted_info}")
+                    #     with st.expander(prompt_name):
+                    #         st.write(f"{prompt_name.capitalize()}: {extracted_info}")
 
-        with st.chat_message(name="assistant"):
-            with st.spinner("thinking...🤔"):
-                llm = ChatOpenAI(model="gpt-4", streaming=True)
-                conversation = ConversationChain(llm=llm, verbose=True)
+            with st.chat_message(name="assistant"):
+                with st.spinner("🤔"):
+                    llm = ChatOpenAI(model="gpt-4", streaming=True)
+                    conversation = ConversationChain(llm=llm, verbose=True)
 
-                # Pass the value of the variable text_content to the predict() method
-                output = conversation.predict(
-                    input="Your task is to answer any questions and related tasks based on the information provided. \n Here is the question: "
-                    + user_question
-                    + " \n and here is the content: \n {} ".format(text_content)
-                )
+                    # Pass the value of the variable text_content to the predict() method
+                    output = conversation.predict(
+                        input="Your task is to answer any questions and related tasks based on the information provided. \n Here is the question: "
+                        + user_question
+                        + " \n and here is the content: \n {} ".format(text_content)
+                    )
 
-                st.write(output)
+                    st.write(output)
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": output}
+                    )
+        else:
+            with st.chat_message(name="assistant"):
+                no_document = """Hi, I'm here to help you with knowing your 
+                documents better. Please remember to add a document by using the upload feature
+                in the sidebar to the left."""
+                st.write(no_document)
                 st.session_state.messages.append(
-                    {"role": "assistant", "content": output}
+                    {"role": "assistant", "content": no_document}
                 )
-    else:
-        with st.chat_message(name="assistant"):
-            no_document = st.write("Please remember to add a document")
-            st.session_state.messages.append(
-                {"role": "assistant", "content": no_document}
-            )
 
 
 get_initial_msgs()
 
-if user_question is not None:
+if user_question:
     sendMessage(user_question=user_question)
