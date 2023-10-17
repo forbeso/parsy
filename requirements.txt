@@ -7,3 +7,4 @@ pillow
 flask
 langchain
 streamlit-authenticator
+docx
