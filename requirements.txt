@@ -8,3 +8,4 @@ flask
 langchain
 streamlit-authenticator
 docx
+lxml
